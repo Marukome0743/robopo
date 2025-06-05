@@ -1,11 +1,14 @@
 "use client"
 
-import { type RefObject, useRef, useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { type SelectCourse, type SelectPlayer } from "@/app/lib/db/schema"
-import { useAudioContext, SoundControlUI } from "@/app/challenge/[competitionId]/[courseId]/[playerId]/audioContext"
+import {
+  SoundControlUI,
+  useAudioContext,
+} from "@/app/challenge/[competitionId]/[courseId]/[playerId]/audioContext"
 import { BackLabelWithIcon } from "@/app/lib/const"
+import type { SelectCourse, SelectPlayer } from "@/app/lib/db/schema"
 import StartSound from "@/app/lib/sound/01_start.mp3"
+import { useRouter } from "next/navigation"
+import { type RefObject, useEffect, useRef, useState } from "react"
 
 type ViewProps = {
   courseData: SelectCourse
@@ -19,7 +22,8 @@ export const Modal = ({ courseData, playerData }: ViewProps) => {
   const router = useRouter()
   const [modalOpen, setModalOpen] = useState<boolean>(true)
   const { soundOn, setSoundOn } = useAudioContext()
-  const dialogRef: RefObject<HTMLDialogElement | null> = useRef<HTMLDialogElement | null>(null)
+  const dialogRef: RefObject<HTMLDialogElement | null> =
+    useRef<HTMLDialogElement | null>(null)
 
   const modalClose = () => {
     dialogRef.current?.close()
@@ -51,7 +55,8 @@ export const Modal = ({ courseData, playerData }: ViewProps) => {
             onClick={() => {
               soundOn && startSound && startSound.play()
               modalClose()
-            }}>
+            }}
+          >
             <span>スタート</span>
           </button>
           <SoundControlUI soundOn={soundOn} setSoundOn={setSoundOn} />
@@ -60,8 +65,10 @@ export const Modal = ({ courseData, playerData }: ViewProps) => {
             className="btn btn-primary min-w-28 max-w-fit mx-auto mt-5"
             onClick={() => {
               router.back()
-            }}>
-            選手選択に<BackLabelWithIcon />
+            }}
+          >
+            選手選択に
+            <BackLabelWithIcon />
           </button>
         </div>
       </div>
