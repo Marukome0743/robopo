@@ -18,6 +18,8 @@ import { ChallengeModal, CourseOutModal, RetryModal } from "@/app/challenge/chal
 import { calcPoint, resultSubmit } from "@/app/components/challenge/utils"
 import { IpponBashiUI } from "@/app/components/challenge/ipponBashi"
 import { useAudioContext, SoundControlUI } from "@/app/challenge/[competitionId]/[courseId]/[playerId]/audioContext"
+import { ReloadButton } from "@/app/components/parts/buttons"
+import { BackLabelWithIcon, SendIcon } from "@/app/lib/const"
 import NextSound from "@/app/lib/sound/02_next.mp3"
 import BackSound from "@/app/lib/sound/03_back.mp3"
 import GoalSound from "@/app/lib/sound/04_goal.mp3"
@@ -188,10 +190,11 @@ const Challenge = ({ field, mission, point, compeId, courseId, playerId, umpireI
                 className="btn btn-primary mx-auto m-3"
                 onClick={handleBack}
                 disabled={nowMission === 0}>
-                1つ戻る
+                1つ<BackLabelWithIcon />
               </button>
               <button type="button" className="btn btn-accent mx-auto m-3" onClick={() => setModalOpen(1)}>
                 結果送信
+                <SendIcon />
               </button>
               <div className="grid grid-cols-2">
                 <button type="button" className="btn btn-primary mx-auto m-3" onClick={() => setModalOpen(3)}>
@@ -229,7 +232,7 @@ const Challenge = ({ field, mission, point, compeId, courseId, playerId, umpireI
               )}
               {isSuccess ? (
                 // チャレンジ終了後、画面読み込み直して初期状態に戻る
-                (<button className="btn btn-accent mx-auto text-2xl" onClick={() => window.location.reload()}>コース一覧に戻る
+                (<button className="btn btn-accent mx-auto text-2xl" onClick={() => window.location.reload()}>コース一覧に<BackLabelWithIcon />
                 </button>)
               ) : (
                 <button
@@ -294,7 +297,7 @@ const Challenge = ({ field, mission, point, compeId, courseId, playerId, umpireI
               className="btn btn-primary mx-auto"
               onClick={handleBack}
               disabled={nowMission === 0}>
-              1つ戻る
+              1つ<BackLabelWithIcon />
             </button>
             <button
               type="button"
@@ -371,9 +374,7 @@ const Challenge = ({ field, mission, point, compeId, courseId, playerId, umpireI
     return (
       <>
         <div>エラーです。</div>
-        <button className="btn btn-accent mx-auto text-2xl" onClick={() => window.location.reload()}>
-          再読み込み
-        </button>
+        <ReloadButton />
       </>
     )
   }

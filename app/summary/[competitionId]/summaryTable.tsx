@@ -52,43 +52,60 @@ export const SummaryTable = ({ id, courseList, ipponBashiPoint }: Props) => {
     const order = sortKey === key && sortOrder === "asc" ? "desc" : "asc"
     setSortKey(key)
     setSortOrder(order)
+    const parseDateValue = (value: any, tCourseMaxResult: any): number => {
+      if (
+        !value ||
+        value === "-" ||
+        !isCompletedCourse(pointData, tCourseMaxResult)
+      ) {
+        return order === "asc" ? Infinity : -Infinity
+      }
+      const t = Date.parse(value as string)
+      return isNaN(t) ? (order === "asc" ? Infinity : -Infinity) : t
+    }
+
+    const parseZekken = (value: any): number | string => {
+      const num = Number(value)
+      return !isNaN(num) ? num : typeof value === "string" ? value : ""
+    }
+
+    const parseNumberFallback = (value: any): number => {
+      return typeof value === "number" ? value : value === null ? 0 : Number(value)
+    }
+
     const sortedData = [...courseSummary].sort((a, b) => {
-      // 日時keyのときはDate.parseで比較
-      if (key === "firstTCourseTime") {
-        // a[key] / b[key]は「YYYY/MM/DD hh:mm:ss」等の文字列
-        const getTimeVal = (v: CourseSummary | null) => {
-          if (!v || v["firstTCourseTime"] === "-" || !isCompletedCourse(pointData, v["tCourseMaxResult"])) {
-            return order === "asc" ? Infinity : -Infinity
-          }
-          const t = Date.parse(v["firstTCourseTime"] as string)
-          return isNaN(t) ? (order === "asc" ? Infinity : -Infinity) : t
+      const getVal = (item: CourseSummary) => {
+        const value = item[key]
+
+        switch (key) {
+          case "firstTCourseTime":
+            return parseDateValue(value, item["tCourseMaxResult"])
+          case "playerFurigana":
+            return typeof value === "string" ? value.toString() : ""
+          case "playerZekken":
+            return parseZekken(value)
+          case "firstTCourseCount":
+            if (!isCompletedCourse(pointData, item["tCourseMaxResult"])) {
+              return order === "asc" ? Infinity : -Infinity
+            }
+            return parseNumberFallback(value)
+          default:
+            return parseNumberFallback(value)
         }
-        const aTime = getTimeVal(a)
-        const bTime = getTimeVal(b)
-        return order === "asc" ? aTime - bTime : bTime - aTime
       }
 
-      const aValue: number | string =
-        key === "playerFurigana" || key === "playerZekken"
-          ? a[key] === null
-            ? "" // 何も入ってない時に何入れるかは考える余地あり。
-            : a[key]
-          : a[key] === null
-            ? 0
-            : +a[key]
-      const bValue: number | string =
-        key === "playerFurigana" || key === "playerZekken"
-          ? b[key] === null
-            ? "" // 何も入ってない時に何入れるかは考える余地あり。
-            : b[key]
-          : b[key] === null
-            ? 0
-            : +b[key]
+      const aVal = getVal(a)
+      const bVal = getVal(b)
 
-      if (order === "asc") {
-        return aValue > bValue ? 1 : -1
+      if (key === "playerFurigana" && typeof aVal === "string" && typeof bVal === "string") {
+        return order === "asc" ? aVal.localeCompare(bVal, "ja")
+          : bVal.localeCompare(aVal, "ja")
+      } else if (aVal < bVal) {
+        return order === "asc" ? -1 : 1
+      } else if (aVal > bVal) {
+        return order === "asc" ? 1 : -1
       } else {
-        return aValue < bValue ? 1 : -1
+        return 0
       }
     })
     setCourseSummary(sortedData)
@@ -178,6 +195,7 @@ export const SummaryTable = ({ id, courseList, ipponBashiPoint }: Props) => {
             ) : courseSummary.length > 0 ? (
               courseSummary?.map((player) => (
                 <tr key={player.playerId}>
+                  {/* 名前 */}
                   <th className="border border-gray-400 p-2">
                     <Link
                       href={`/summary/${competitionId}/${courseId}/${player.playerId}`}
@@ -185,13 +203,17 @@ export const SummaryTable = ({ id, courseList, ipponBashiPoint }: Props) => {
                       {player.playerName ? player.playerName : "-"}
                     </Link>
                   </th>
+                  {/* ふりがな */}
                   <td className="border border-gray-400 p-2 sm:whitespace-nowrap">
                     {player.playerFurigana ? player.playerFurigana : "-"}
                   </td>
+                  {/* ゼッケン */}
                   <td className="border border-gray-400 p-2">{player.playerZekken ? player.playerZekken : "-"}</td>
+                  {/* ベーシックコース完走時刻 */}
                   <td className="border border-gray-400 p-2">
                     {isCompletedCourse(pointData, player.tCourseMaxResult) ? player.firstTCourseTime : "-"}
                   </td>
+                  {/* 完走は何回で達成? */}
                   <td className="border border-gray-400 p-2">
                     {isCompletedCourse(pointData, player.tCourseMaxResult) && player.firstTCourseCount
                       ? player.firstTCourseCount
@@ -199,8 +221,9 @@ export const SummaryTable = ({ id, courseList, ipponBashiPoint }: Props) => {
                   </td>
                   {/* センサーコース以外 */}
                   {courseId !== RESERVED_COURSE_IDS.SENSOR && (
+                    // ベーシックコースの最高得点
                     <td className="border border-gray-400 p-2">
-                      {player.tCourseMaxResult ? calcPoint(pointData, player.tCourseMaxResult) : "-"}
+                      {player.tCourseMaxResult || player.tCourseMaxResult === 0 ? calcPoint(pointData, player.tCourseMaxResult) : "-"}
                     </td>
                   )}
                   {/* センサーコースはmaxResultにそのまま最高得点が入ってる */}
@@ -209,16 +232,23 @@ export const SummaryTable = ({ id, courseList, ipponBashiPoint }: Props) => {
                       {player.sensorMaxResult ? player.sensorMaxResult : "-"}
                     </td>
                   )}
+                  {/* センサーコースの最高得点 */}
                   <td className="border border-gray-400 p-2">
                     {player.sensorMaxResult ? player.sensorMaxResult : "-"}
                   </td>
+                  {/* 一本橋の合計得点 */}
                   <td className="border border-gray-400 p-2">{player.sumIpponPoint ? player.sumIpponPoint : "-"}</td>
+                  {/* 一本橋の最高得点 */}
                   <td className="border border-gray-400 p-2">
-                    {player.ipponMaxResult ? calcPoint(ipponBashiPoint, player.ipponMaxResult) : "-"}
+                    {player.ipponMaxResult || player.ipponMaxResult === 0 ? calcPoint(ipponBashiPoint, player.ipponMaxResult) : "-"}
                   </td>
+                  {/* 全てのチャレンジの総得点 */}
                   <td className="border border-gray-400 p-2">{player.totalPoint ? player.totalPoint : "-"}</td>
+                  {/* 総得点の順位 */}
                   <td className="border border-gray-400 p-2">{player.pointRank}</td>
+                  {/* チャレンジ回数 */}
                   <td className="border border-gray-400 p-2">{player.challengeCount}</td>
+                  {/* 回数の順位 */}
                   <td className="border border-gray-400 p-2">{player.challengeRank}</td>
                 </tr>
               ))
