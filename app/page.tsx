@@ -38,13 +38,13 @@ export default async function Home() {
           name="tabs"
           id="challenge-tab"
           role="tab"
-          className="tab whitespace-nowrap"
+          className={`tab whitespace-nowrap ${session?.user ? "" : " hidden"}`}
           defaultChecked={true}
         />
         <div role="tabpanel" className="tab-content bg-base-100 border border-base-300 rounded-box p-6">
           <ChallengeTab key="challenge" competitionList={competitionList} courseList={courseList} competitionCourseList={competitionCourseList} />
         </div>
-        <label htmlFor="challenge-tab" className="flex tab items-center gap-2">
+        <label htmlFor="challenge-tab" className={`flex tab items-center gap-2 ${session?.user ? "" : " hidden"}`}>
           <ClipboardDocumentCheckIcon className="h-6 w-6" />
           採点
         </label>
