@@ -19,8 +19,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const reqbody = await req.json()
-  const { name, field, fieldvalid, mission, missionvalid, point } = reqbody
+  const { name, field, fieldvalid, mission, missionvalid, point } =
+    await req.json()
   const searchParams = req.nextUrl.searchParams
   const rawId = searchParams.get("id")
   const id = rawId ? Number.parseInt(rawId) : null
