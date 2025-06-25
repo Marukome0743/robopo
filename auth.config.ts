@@ -1,6 +1,8 @@
+import bcrypt from "bcrypt"
 import type { NextAuthConfig, User } from "next-auth"
 import Credentials from "next-auth/providers/credentials"
-import { fetchUser } from "@/app/lib/auth/fetchUser"
+import { z } from "zod"
+import { getUserByName } from "@/app/lib/db/queries/queries"
 
 export default {
   providers: [
@@ -13,13 +15,29 @@ export default {
           placeholder: "*********",
         },
       },
-      authorize: async (credentials) => {
+      async authorize(credentials) {
         try {
-          const user = await fetchUser(credentials)
-          if (!user) {
-            return null
+          const parsedCredentials = z
+            .object({
+              username: z.string().nonempty(),
+              password: z.string().nonempty(),
+            })
+            .safeParse(credentials)
+
+          if (parsedCredentials.success) {
+            const { username, password } = parsedCredentials.data
+            const user = await getUserByName(username)
+            const passwordMatch = await bcrypt.compare(password, user.password)
+            if (passwordMatch) {
+              return {
+                id: user.id.toString(),
+                name: user.name,
+                email: null,
+                image: null,
+              } as User
+            }
           }
-          return user as User
+          return null
         } catch {
           return null
         }
