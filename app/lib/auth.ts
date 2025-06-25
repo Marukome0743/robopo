@@ -1,6 +1,8 @@
+import bcrypt from "bcryptjs"
 import type { User } from "next-auth"
 import { z } from "zod"
 import { BASE_URL } from "@/app/lib/const"
+import { getUserByName } from "@/app/lib/db/queries/queries"
 
 const credentialsSchema: z.ZodSchema<{ username: string; password: string }> =
   z.object({
@@ -22,22 +24,31 @@ export function parsedCredentials(input: unknown): {
 export async function fetchUser(
   username: string,
   password: string,
-): Promise<User | null> {
+): Promise<User> {
   try {
-    const response = await fetch(`${BASE_URL}/api/user/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: username, password }),
+    console.log("[fetchUser] Start", {
+      username,
+      password: password ? "••••" : password,
     })
-    console.log("[fetchUser]DB response", response)
-    if (response.ok) {
-      const { user } = await response.json()
-      if (user) {
-        return user as User
-      }
+    const result = await getUserByName(username)
+    console.log("[fetchUser] DB result", result)
+    const passwordMatch = await bcrypt.compare(password, result.password)
+    console.log("[fetchUser] Password match result", passwordMatch)
+    if (passwordMatch) {
+      return {
+        id: result.id.toString(),
+        name: result.name,
+        email: null,
+        image: null,
+      } as User
     }
   } catch (error) {
-    console.error("[fetchUser]Error", error)
+    console.error("[fetchUser] Error retrieving user", error)
   }
-  return null
+  return {
+    id: "",
+    name: "",
+    email: null,
+    image: null,
+  } as User
 }
