@@ -1,4 +1,4 @@
-import bcrypt from "bcryptjs"
+import bcrypt from "bcrypt"
 import type { User } from "next-auth"
 import { getUserByName } from "@/app/lib/db/queries/queries"
 
