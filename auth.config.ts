@@ -15,16 +15,8 @@ export default {
       },
       authorize: async (credentials) => {
         try {
-          console.log("[authorize]start")
           const { username, password } = parsedCredentials(credentials)
-          console.log(
-            "[authorize] credentials",
-            username,
-            password ? "••••" : password,
-          )
           const user = await fetchUser(username, password)
-          console.log("[authorize] fetched user", user)
-          console.log("[authorize]BASE_URL", process.env.DATABASE_URL)
           if (!user) {
             return null
           }

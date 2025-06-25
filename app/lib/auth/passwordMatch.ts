@@ -2,20 +2,19 @@ import bcrypt from "bcryptjs"
 import type { User } from "next-auth"
 import { getUserByName } from "@/app/lib/db/queries/queries"
 
-export async function passwordMatch(name: string, password: string) {
-  console.log("[API]Start", { name, password: password ? "••••" : password })
+export async function passwordMatch(
+  name: string,
+  password: string,
+): Promise<User | null> {
   const result = await getUserByName(name)
-  console.log("[API]DB result", result)
   const passwordMatch = await bcrypt.compare(password, result.password)
-  console.log("[API]Password match result", passwordMatch)
   if (passwordMatch) {
-    const user: User = {
+    return {
       id: result.id.toString(),
       name: result.name,
       email: null,
       image: null,
-    }
-    return user
+    } as User
   }
   return null
 }
