@@ -2,6 +2,16 @@
   "name": "robopo",
   "version": "0.1.0",
   "private": true,
+  "description": "Scoring and Calculation Application for Robosava",
+  "author": {
+    "name": "kazutan",
+    "url": "https://openup-labtakizawa.github.io/robopo/"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpenUp-LabTakizawa/robopo"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -28,7 +38,7 @@
     "drizzle-kit": "^0.31.4",
     "drizzle-orm": "^0.44.2",
     "next-auth": "^5.0.0-beta.29",
-    "next-navigation-guard": "^0.1.2",
+    "next-navigation-guard": "^0.2.0",
     "next-rspack": "canary",
     "pg": "^8.16.3",
     "postcss": "^8.5.6",
