@@ -15,8 +15,8 @@ export function Panel({
   type?: string
   onClick: () => void
 }) {
-  const routeStyle = `${value === "start" ? "bg-pink-300" : value === "goal" ? "bg-green-300" : "bg-blue-300"} `
-  const textStyle = type === "ipponBashi" ? " text-[10px] " : " text-lg "
+  const routeStyle = `${value === "start" ? "bg-pink-300 " : value === "goal" ? "bg-green-300 " : "bg-blue-300 "}`
+  const textStyle = type === "ipponBashi" ? "text-[10px] " : "text-lg "
   const hasRole = value === "start" || value === "goal" || value === "route"
 
   const panelWidth = getPanelWidth(type)
@@ -34,7 +34,7 @@ export function Panel({
           className={
             routeStyle +
             textStyle +
-            " flex items-center justify-center rounded-sm font-bold"
+            "flex items-center justify-center rounded-sm font-bold"
           }
           style={{
             width: `${panelWidth - 10}px`,
