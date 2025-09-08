@@ -117,7 +117,7 @@ export function CompetitionListTab({
         }
         onClick={(e) => handleButtonClick(e)}
       >
-        停止
+        終了
       </button>
       <button
         type="button"

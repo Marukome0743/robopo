@@ -105,7 +105,7 @@ function itemNames(type: CommonListProps["type"]): string[] {
   } else if (type === "course") {
     itemNames.push("ID", "コース名", "作成日時", "使用大会")
   } else if (type === "competition") {
-    itemNames.push("ID", "名前", "開催中")
+    itemNames.push("ID", "名前", "開催状況")
   }
   return itemNames
 }
