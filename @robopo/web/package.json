@@ -38,29 +38,29 @@
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.1",
-    "next": "15.5.6",
+    "next": "15.5.7",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.6",
+    "@biomejs/biome": "^2.3.8",
     "@heroicons/react": "^2.2.0",
     "@tailwindcss/postcss": "^4.1.17",
     "@types/bcrypt": "^6.0.0",
     "@types/node": "^24.10.1",
     "@types/pg": "^8.15.5",
-    "@types/react": "^19.2.6",
+    "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.2",
     "bcrypt": "^6.0.0",
     "daisyui": "^5.5.5",
-    "drizzle-kit": "^0.31.7",
-    "drizzle-orm": "^0.44.7",
+    "drizzle-kit": "^0.31.8",
+    "drizzle-orm": "^0.45.0",
     "next-auth": "^5.0.0-beta.30",
     "next-navigation-guard": "^0.2.0",
     "pg": "^8.16.3",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.13",
     "typescript": "^5.9.3",
-    "zod": "^4.1.12"
+    "zod": "^4.1.13"
   }
 }
