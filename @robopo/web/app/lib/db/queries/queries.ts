@@ -443,7 +443,32 @@ export async function getPlayersWithCompetition() {
     .orderBy(player.id)
 }
 
-// Group the above query results by player (allows arrays)
+// Generic helper: group flat rows by id and collect competitionName into arrays
+type FlatRowWithCompetition = {
+  id: number
+  competitionId: number | null
+  competitionName: string | null
+}
+
+function groupByCompetition<
+  TFlat extends FlatRowWithCompetition,
+  TResult extends { competitionName: string[] | null },
+>(flatRows: TFlat[], toResult: (row: TFlat) => TResult): TResult[] {
+  const map = new Map<number, TResult>()
+
+  for (const row of flatRows) {
+    if (!map.has(row.id)) {
+      map.set(row.id, toResult(row))
+    }
+    if (row.competitionName) {
+      map.get(row.id)?.competitionName?.push(row.competitionName)
+    }
+  }
+
+  return Array.from(map.values())
+}
+
+// Group flat rows by player
 export function groupByPlayer(
   flatRows: {
     id: number
@@ -454,28 +479,14 @@ export function groupByPlayer(
     competitionName: string | null
   }[],
 ): SelectPlayerWithCompetition[] {
-  const playerMap = new Map<string, SelectPlayerWithCompetition>()
-
-  for (const row of flatRows) {
-    const key = row.id.toString()
-
-    if (!playerMap.has(key)) {
-      playerMap.set(key, {
-        id: row.id,
-        name: row.name,
-        furigana: row.furigana,
-        zekken: row.zekken,
-        competitionId: row.competitionId,
-        competitionName: [],
-      })
-    }
-
-    if (row.competitionName) {
-      playerMap.get(key)?.competitionName?.push(row.competitionName)
-    }
-  }
-
-  return Array.from(playerMap.values())
+  return groupByCompetition(flatRows, (row) => ({
+    id: row.id,
+    name: row.name,
+    furigana: row.furigana,
+    zekken: row.zekken,
+    competitionId: row.competitionId,
+    competitionName: [],
+  }))
 }
 
 // Get umpires with their competitions
@@ -493,7 +504,7 @@ export async function getUmpireWithCompetition() {
     .orderBy(umpire.id)
 }
 
-// Group the above query results by umpire (allows arrays)
+// Group flat rows by umpire
 export function groupByUmpire(
   flatRows: {
     id: number
@@ -502,26 +513,12 @@ export function groupByUmpire(
     competitionName: string | null
   }[],
 ): SelectUmpireWithCompetition[] {
-  const umpireMap = new Map<string, SelectUmpireWithCompetition>()
-
-  for (const row of flatRows) {
-    const key = row.id.toString()
-
-    if (!umpireMap.has(key)) {
-      umpireMap.set(key, {
-        id: row.id,
-        name: row.name,
-        competitionId: row.competitionId,
-        competitionName: [],
-      })
-    }
-
-    if (row.competitionName) {
-      umpireMap.get(key)?.competitionName?.push(row.competitionName)
-    }
-  }
-
-  return Array.from(umpireMap.values())
+  return groupByCompetition(flatRows, (row) => ({
+    id: row.id,
+    name: row.name,
+    competitionId: row.competitionId,
+    competitionName: [],
+  }))
 }
 
 // Get courses with their competitions
@@ -540,7 +537,7 @@ export async function getCourseWithCompetition() {
     .orderBy(course.id)
 }
 
-// Group the above query results by course (allows arrays)
+// Group flat rows by course
 export function groupByCourse(
   flatRows: {
     id: number
@@ -550,24 +547,11 @@ export function groupByCourse(
     competitionName: string | null
   }[],
 ): SelectCourseWithCompetition[] {
-  const courseMap = new Map<string, SelectCourseWithCompetition>()
-
-  for (const row of flatRows) {
-    const key = row.id.toString()
-
-    if (!courseMap.has(key)) {
-      courseMap.set(key, {
-        id: row.id,
-        name: row.name,
-        createdAt: row.createdAt,
-        competitionId: row.competitionId,
-        competitionName: [],
-      })
-    }
-
-    if (row.competitionName) {
-      courseMap.get(key)?.competitionName?.push(row.competitionName)
-    }
-  }
-  return Array.from(courseMap.values())
+  return groupByCompetition(flatRows, (row) => ({
+    id: row.id,
+    name: row.name,
+    createdAt: row.createdAt,
+    competitionId: row.competitionId,
+    competitionName: [],
+  }))
 }
