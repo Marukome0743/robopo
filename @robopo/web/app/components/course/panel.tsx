@@ -1,6 +1,5 @@
 import {
-  getPanelHeight,
-  getPanelWidth,
+  PANEL_SIZE,
   PanelString,
   type PanelValue,
 } from "@/app/components/course/utils"
@@ -28,15 +27,12 @@ export function Panel({
     value === "route" ||
     value === "startGoal"
 
-  const panelWidth = getPanelWidth(type)
-  const panelHeight = getPanelHeight(type)
-
   return (
     <button
       type="button"
       onClick={onClick}
       className="flex h-10 w-10 flex-col items-center justify-center border border-gray-800 bg-white"
-      style={{ width: `${panelWidth}px`, height: `${panelHeight}px` }}
+      style={{ width: `${PANEL_SIZE}px`, height: `${PANEL_SIZE}px` }}
     >
       {hasRole &&
         (value === "startGoal" ? (
@@ -45,8 +41,8 @@ export function Panel({
             <div
               className={`${textStyle} flex items-center justify-center rounded-t-sm bg-pink-300 font-bold`}
               style={{
-                width: `${panelWidth - 10}px`,
-                height: `${panelWidth / 2 - 5}px`,
+                width: `${PANEL_SIZE - 10}px`,
+                height: `${PANEL_SIZE / 2 - 5}px`,
               }}
             >
               {PanelString.start}
@@ -54,8 +50,8 @@ export function Panel({
             <div
               className={`${textStyle} flex items-center justify-center rounded-b-sm bg-green-300 font-bold`}
               style={{
-                width: `${panelWidth - 10}px`,
-                height: `${panelWidth / 2 - 5}px`,
+                width: `${PANEL_SIZE - 10}px`,
+                height: `${PANEL_SIZE / 2 - 5}px`,
               }}
             >
               {PanelString.goal}
@@ -65,8 +61,8 @@ export function Panel({
           <div
             className={`${routeStyle} ${textStyle} flex items-center justify-center rounded-sm font-bold`}
             style={{
-              width: `${panelWidth - 10}px`,
-              height: `${panelWidth - 10}px`,
+              width: `${PANEL_SIZE - 10}px`,
+              height: `${PANEL_SIZE - 10}px`,
             }}
           >
             {PanelString[value]}

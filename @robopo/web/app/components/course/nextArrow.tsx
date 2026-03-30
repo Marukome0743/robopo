@@ -1,8 +1,7 @@
 import {
   getNextPosition,
-  getPanelHeight,
-  getPanelWidth,
   type MissionValue,
+  PANEL_SIZE,
 } from "@/app/components/course/utils"
 
 export function NextArrow({
@@ -104,8 +103,8 @@ function NextMoveArrow({
     rotate = 180
   }
 
-  const midX = ((2 * col + colAdd) * getPanelWidth(type)) / 2
-  const midY = ((2 * row + rowAdd) * getPanelHeight(type)) / 2
+  const midX = ((2 * col + colAdd) * PANEL_SIZE) / 2
+  const midY = ((2 * row + rowAdd) * PANEL_SIZE) / 2
 
   const arrowStyle: React.CSSProperties = {
     position: "absolute",
@@ -196,12 +195,9 @@ function NextTurnArrow({
   duration?: number // Rotation speed (seconds)
   type?: string
 }) {
-  // Get panel width and height
-  const panelWidth = getPanelWidth(type)
-  const panelHeight = getPanelHeight(type)
   // Calculate circle center
-  const midX = (2 * col * panelWidth) / 2
-  const midY = (2 * row * panelHeight) / 2
+  const midX = (2 * col * PANEL_SIZE) / 2
+  const midY = (2 * row * PANEL_SIZE) / 2
 
   // Arrow starting point
   let startDeg: number
@@ -249,10 +245,10 @@ function NextTurnArrow({
         position: relative;
         display: inline-block;
         width: ` +
-          `${panelWidth}` +
+          `${PANEL_SIZE}` +
           `px;
         height: ` +
-          `${panelHeight}` +
+          `${PANEL_SIZE}` +
           `px;
         border: 0px solid #FF0033;
 
@@ -294,10 +290,10 @@ function NextTurnArrow({
         position: absolute;
         display: inline-block;
         width: ` +
-          `${panelWidth}` +
+          `${PANEL_SIZE}` +
           `px;
         height: ` +
-          `${panelHeight}` +
+          `${PANEL_SIZE}` +
           `px;
         border: 2px solid #FF0033;
         border-radius: 50%; /* Make circular */
