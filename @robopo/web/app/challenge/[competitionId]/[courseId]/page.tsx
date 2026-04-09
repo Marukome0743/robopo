@@ -5,10 +5,13 @@ import type { SelectCourse, SelectPlayer } from "@/app/lib/db/schema"
 
 export default async function Challenge({
   params,
+  searchParams,
 }: {
   params: Promise<{ competitionId: number; courseId: number }>
+  searchParams: Promise<{ umpireId?: string }>
 }) {
   const { competitionId, courseId } = await params
+  const { umpireId } = await searchParams
   const initialPlayerDataList: { players: SelectPlayer[] } =
     await getCompetitionPlayerList(competitionId)
 
@@ -21,6 +24,7 @@ export default async function Challenge({
       initialPlayerDataList={initialPlayerDataList}
       competitionId={competitionId}
       courseId={courseId}
+      umpireId={umpireId ? Number(umpireId) : 1}
     />
   ) : (
     <div className="flex w-full flex-col items-center justify-center overflow-y-auto">

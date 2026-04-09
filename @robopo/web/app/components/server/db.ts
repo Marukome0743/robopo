@@ -6,6 +6,7 @@ import {
   competition,
   competitionCourse,
   competitionPlayer,
+  competitionUmpire,
   course,
   player,
   type SelectCompetition,
@@ -92,4 +93,21 @@ export async function getCompetitionPlayerList(competitionId: number): Promise<{
     .where(eq(competitionPlayer.competitionId, competitionId))
 
   return { players }
+}
+
+// Get umpires by competition ID
+export async function getCompetitionUmpireList(competitionId: number): Promise<{
+  umpires: SelectUmpire[]
+}> {
+  const umpires: SelectUmpire[] = await db
+    .select({
+      id: umpire.id,
+      name: umpire.name,
+      createdAt: umpire.createdAt,
+    })
+    .from(umpire)
+    .innerJoin(competitionUmpire, eq(umpire.id, competitionUmpire.umpireId))
+    .where(eq(competitionUmpire.competitionId, competitionId))
+
+  return { umpires }
 }
