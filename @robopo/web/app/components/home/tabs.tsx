@@ -77,10 +77,20 @@ export function ChallengeTab({
   judgeList,
   competitionJudgeList,
 }: ChallengeTabProps): React.JSX.Element {
-  const activeCompetitions = useMemo(
-    () => competitionList.competitions.filter((c) => c.step === 1),
-    [competitionList.competitions],
-  )
+  const activeCompetitions = useMemo(() => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return competitionList.competitions.filter((c) => {
+      if (!c.startDate || !c.endDate) {
+        return false
+      }
+      const start = new Date(c.startDate)
+      start.setHours(0, 0, 0, 0)
+      const end = new Date(c.endDate)
+      end.setHours(0, 0, 0, 0)
+      return start <= today && today <= end
+    })
+  }, [competitionList.competitions])
   const singleCompetition =
     activeCompetitions.length === 1 ? activeCompetitions[0] : null
 
@@ -260,7 +270,16 @@ export function SummaryTab({
             <option
               key={competition.id}
               value={competition.id}
-              hidden={competition.step === 0}
+              hidden={
+                !competition.startDate ||
+                (() => {
+                  const today = new Date()
+                  today.setHours(0, 0, 0, 0)
+                  const start = new Date(competition.startDate as Date)
+                  start.setHours(0, 0, 0, 0)
+                  return start > today
+                })()
+              }
             >
               {competition.name}
             </option>

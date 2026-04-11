@@ -28,8 +28,22 @@ const players = [
 ]
 
 const competitions = [
-  { id: 1, name: "大会A", step: 0, createdAt: new Date() },
-  { id: 2, name: "大会B", step: 1, createdAt: new Date() },
+  {
+    id: 1,
+    name: "大会A",
+    description: null,
+    startDate: null,
+    endDate: null,
+    createdAt: new Date(),
+  },
+  {
+    id: 2,
+    name: "大会B",
+    description: null,
+    startDate: null,
+    endDate: null,
+    createdAt: new Date(),
+  },
 ]
 
 describe("CommonSelectionList", () => {
