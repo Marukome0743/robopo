@@ -33,6 +33,12 @@ export type CourseEditState = {
   canUndo: boolean
   canRedo: boolean
   pushHistory: () => void
+  // Mission undo/redo
+  undoMission: () => void
+  redoMission: () => void
+  canUndoMission: boolean
+  canRedoMission: boolean
+  pushMissionHistory: () => void
 }
 
 // Dummy initial values
@@ -56,6 +62,11 @@ const dummy: CourseEditState = {
   canUndo: false,
   canRedo: false,
   pushHistory: () => {},
+  undoMission: () => {},
+  redoMission: () => {},
+  canUndoMission: false,
+  canRedoMission: false,
+  pushMissionHistory: () => {},
 }
 
 const CourseEditContext = createContext<CourseEditState>(dummy)
@@ -72,16 +83,26 @@ export function CourseEditProvider({
   const [name, setName] = useState<string>("")
   const [description, setDescription] = useState<string>("")
   const [field, setField] = useState<FieldState>(initializeField())
-  const [mission, setMission] = useState<MissionState>([])
-  const [point, setPoint] = useState<PointState>([0, 10])
+  // Default: 1 empty mission for the start panel action
+  // Format: [startDir, goalDir, mission0, param0]
+  const [mission, setMission] = useState<MissionState>([null, null, null, null])
+  // Format: [startPoint, goalPoint, mission0Point]
+  const [point, setPoint] = useState<PointState>([0, 10, 0])
   const [courseOutRule, setCourseOutRule] = useState<string>("keep")
   const [selectedTool, setSelectedTool] = useState<ToolType>("start")
 
-  // Undo/Redo history
+  // Field Undo/Redo history
   const historyRef = useRef<FieldState[]>([])
   const redoRef = useRef<FieldState[]>([])
   const [canUndo, setCanUndo] = useState(false)
   const [canRedo, setCanRedo] = useState(false)
+
+  // Mission Undo/Redo history
+  type MissionSnapshot = { mission: MissionState; point: PointState }
+  const missionHistoryRef = useRef<MissionSnapshot[]>([])
+  const missionRedoRef = useRef<MissionSnapshot[]>([])
+  const [canUndoMission, setCanUndoMission] = useState(false)
+  const [canRedoMission, setCanRedoMission] = useState(false)
 
   const pushHistory = useCallback(() => {
     historyRef.current = [
@@ -132,6 +153,61 @@ export function CourseEditProvider({
     }
   }, [])
 
+  const pushMissionHistory = useCallback(() => {
+    missionHistoryRef.current = [
+      ...missionHistoryRef.current.slice(-MAX_HISTORY + 1),
+      { mission: [...mission], point: [...point] },
+    ]
+    missionRedoRef.current = []
+    setCanUndoMission(true)
+    setCanRedoMission(false)
+  }, [mission, point])
+
+  const undoMission = useCallback(() => {
+    const history = missionHistoryRef.current
+    if (history.length > 0) {
+      // Save current to redo
+      setMission((curMission) => {
+        setPoint((curPoint) => {
+          missionRedoRef.current = [
+            ...missionRedoRef.current,
+            { mission: [...curMission], point: [...curPoint] },
+          ]
+          setCanRedoMission(true)
+          return curPoint
+        })
+        return curMission
+      })
+      const prev = history[history.length - 1]
+      missionHistoryRef.current = history.slice(0, -1)
+      setCanUndoMission(missionHistoryRef.current.length > 0)
+      setMission(prev.mission)
+      setPoint(prev.point)
+    }
+  }, [])
+
+  const redoMission = useCallback(() => {
+    const redoStack = missionRedoRef.current
+    if (redoStack.length > 0) {
+      setMission((curMission) => {
+        setPoint((curPoint) => {
+          missionHistoryRef.current = [
+            ...missionHistoryRef.current,
+            { mission: [...curMission], point: [...curPoint] },
+          ]
+          setCanUndoMission(true)
+          return curPoint
+        })
+        return curMission
+      })
+      const next = redoStack[redoStack.length - 1]
+      missionRedoRef.current = redoStack.slice(0, -1)
+      setCanRedoMission(missionRedoRef.current.length > 0)
+      setMission(next.mission)
+      setPoint(next.point)
+    }
+  }, [])
+
   return (
     <CourseEditContext.Provider
       value={{
@@ -154,6 +230,11 @@ export function CourseEditProvider({
         canUndo,
         canRedo,
         pushHistory,
+        undoMission,
+        redoMission,
+        canUndoMission,
+        canRedoMission,
+        pushMissionHistory,
       }}
     >
       {children}
