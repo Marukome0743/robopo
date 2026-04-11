@@ -1,44 +1,53 @@
-import type { QueryResult } from "pg"
 import { getCompetitionList } from "@/app/components/server/db"
-import {
-  closeCompetitionById,
-  openCompetitionById,
-  returnCompetitionById,
-} from "@/app/lib/db/queries/queries"
+import { updateCompetition } from "@/app/lib/db/queries/update"
 
 export const revalidate = 0
 
-export async function POST(
+export async function PATCH(
   req: Request,
   props: { params: Promise<{ id: string }> },
 ) {
   const { id } = await props.params
-  const { type } = await req.json()
-  let result: QueryResult
+  const body = await req.json()
 
-  switch (type) {
-    case "open":
-      result = await openCompetitionById(Number(id))
-      break
-    case "return":
-      result = await returnCompetitionById(Number(id))
-      break
-    case "close":
-      result = await closeCompetitionById(Number(id))
-      break
-    default:
-      return Response.json(
-        {
-          success: false,
-          message: "An error occurred while updating the course.",
-          error: "Invalid type",
-        },
-        { status: 400 },
-      )
+  const updateData: Record<string, unknown> = {}
+  if (body.name !== undefined) {
+    updateData.name = body.name
   }
-  const newList = await getCompetitionList()
-  return Response.json(
-    { success: true, data: result, newList: newList },
-    { status: 200 },
-  )
+  if (body.description !== undefined) {
+    updateData.description = body.description || null
+  }
+  if (body.startDate !== undefined) {
+    updateData.startDate = body.startDate ? new Date(body.startDate) : null
+  }
+  if (body.endDate !== undefined) {
+    updateData.endDate = body.endDate ? new Date(body.endDate) : null
+  }
+
+  const start =
+    updateData.startDate ?? (body.startDate === undefined ? null : undefined)
+  const end =
+    updateData.endDate ?? (body.endDate === undefined ? null : undefined)
+
+  if (start && end && new Date(start as string) > new Date(end as string)) {
+    return Response.json(
+      { success: false, message: "開催日は終了日より前でなければなりません。" },
+      { status: 400 },
+    )
+  }
+
+  try {
+    await updateCompetition(Number(id), updateData)
+    const newList = await getCompetitionList()
+    return Response.json({ success: true, newList }, { status: 200 })
+  } catch (error) {
+    return Response.json(
+      {
+        success: false,
+        message: "An error occurred while updating the competition.",
+        error: error,
+      },
+      { status: 500 },
+    )
+  }
 }
