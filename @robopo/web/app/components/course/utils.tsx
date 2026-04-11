@@ -458,6 +458,170 @@ export function getRobotPosition(
   return [row, col, direction]
 }
 
+// Find panels not connected to start via BFS
+export function findIsolatedPanels(field: FieldState): Set<string> {
+  const start = findStart(field)
+  const allPanels = new Set<string>()
+  for (let r = 0; r < field.length; r++) {
+    for (let c = 0; c < field[r].length; c++) {
+      if (field[r][c] !== null) {
+        allPanels.add(`${r}-${c}`)
+      }
+    }
+  }
+  if (allPanels.size === 0) {
+    return allPanels
+  }
+  if (!start) {
+    return allPanels
+  }
+
+  const visited = new Set<string>()
+  const queue: [number, number][] = [start]
+  visited.add(`${start[0]}-${start[1]}`)
+  const directions = [
+    [-1, 0],
+    [1, 0],
+    [0, -1],
+    [0, 1],
+  ]
+  while (queue.length > 0) {
+    const item = queue.shift()
+    if (!item) {
+      break
+    }
+    const [r, c] = item
+    for (const [dr, dc] of directions) {
+      const nr = r + dr
+      const nc = c + dc
+      const key = `${nr}-${nc}`
+      if (
+        nr >= 0 &&
+        nr < field.length &&
+        nc >= 0 &&
+        nc < (field[0]?.length ?? 0) &&
+        field[nr][nc] !== null &&
+        !visited.has(key)
+      ) {
+        visited.add(key)
+        queue.push([nr, nc])
+      }
+    }
+  }
+
+  const isolated = new Set<string>()
+  for (const key of allPanels) {
+    if (!visited.has(key)) {
+      isolated.add(key)
+    }
+  }
+  return isolated
+}
+
+// Mission error reasons
+export type MissionErrorReason = "off-course" | "not-at-goal"
+
+// Validate missions and return which mission indices are invalid with reasons
+export function validateMissions(
+  field: FieldState,
+  mission: MissionState,
+): Map<number, MissionErrorReason> {
+  const invalidMap = new Map<number, MissionErrorReason>()
+  if (!isStart(field) || !isGoal(field)) {
+    return invalidMap
+  }
+  if (mission[0] === null) {
+    return invalidMap
+  }
+  const start = findStart(field)
+  if (!start) {
+    return invalidMap
+  }
+  const pairs = missionStatePair(mission)
+  if (pairs.length === 0) {
+    return invalidMap
+  }
+
+  for (let i = 0; i < pairs.length; i++) {
+    const [mType, mParam] = pairs[i]
+    // Skip unconfigured mission rows
+    if (mType === null) {
+      continue
+    }
+
+    const [row, col, dir] = getRobotPosition(start[0], start[1], mission, i)
+
+    // Check current position is on course
+    if (
+      row < 0 ||
+      row >= field.length ||
+      col < 0 ||
+      col >= (field[0]?.length ?? 0) ||
+      field[row][col] === null
+    ) {
+      invalidMap.set(i, "off-course")
+      continue
+    }
+
+    // For move missions, check all intermediate panels
+    if (mType === "mf" || mType === "mb") {
+      const steps = typeof mParam === "number" ? mParam : Number(mParam)
+      if (!Number.isNaN(steps) && steps > 0) {
+        let valid = true
+        for (let s = 1; s <= steps; s++) {
+          const [stepRow, stepCol] = getNextPosition(row, col, dir, mType, s)
+          if (
+            stepRow < 0 ||
+            stepRow >= field.length ||
+            stepCol < 0 ||
+            stepCol >= (field[0]?.length ?? 0) ||
+            field[stepRow][stepCol] === null
+          ) {
+            valid = false
+            break
+          }
+        }
+        if (!valid) {
+          invalidMap.set(i, "off-course")
+        }
+      }
+    }
+  }
+
+  // Check that the final position after all missions is on goal
+  // Only check when ALL mission pairs are configured (no null mission types remain)
+  const allConfigured = pairs.every(([mType]) => mType !== null)
+  let lastConfiguredIndex = -1
+  if (allConfigured) {
+    lastConfiguredIndex = pairs.length - 1
+  }
+  if (lastConfiguredIndex >= 0 && !invalidMap.has(lastConfiguredIndex)) {
+    const [row, col, dir] = getRobotPosition(
+      start[0],
+      start[1],
+      mission,
+      lastConfiguredIndex,
+    )
+    const [mType, mParam] = pairs[lastConfiguredIndex]
+    const [finalRow, finalCol] = getNextPosition(row, col, dir, mType, mParam)
+    if (
+      finalRow < 0 ||
+      finalRow >= field.length ||
+      finalCol < 0 ||
+      finalCol >= (field[0]?.length ?? 0)
+    ) {
+      invalidMap.set(lastConfiguredIndex, "off-course")
+    } else if (
+      field[finalRow][finalCol] !== "goal" &&
+      field[finalRow][finalCol] !== "startGoal"
+    ) {
+      invalidMap.set(lastConfiguredIndex, "not-at-goal")
+    }
+  }
+
+  return invalidMap
+}
+
 // Validate course and mission
 export function checkValidity(
   field: FieldState,
