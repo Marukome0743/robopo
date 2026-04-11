@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useCallback, useEffect, useMemo, useState } from "react"
+import type { InsertPreview } from "@/app/components/course/missionList"
 import { computeRobotPreview } from "@/app/components/course/robotPreview"
 import {
   deserializeField,
@@ -51,6 +52,7 @@ export function EditorPage({
   const [selectedMissionIndex, setSelectedMissionIndex] = useState<
     number | null
   >(null)
+  const [insertPreview, setInsertPreview] = useState<InsertPreview | null>(null)
 
   useEffect(() => {
     async function fetchCourseData() {
@@ -75,10 +77,26 @@ export function EditorPage({
     fetchCourseData()
   }, [courseData, setField, setMission, setPoint, setName, setCourseOutRule])
 
-  const robotPreview = useMemo(
-    () => computeRobotPreview(field, mission, selectedMissionIndex),
-    [field, mission, selectedMissionIndex],
-  )
+  const robotPreview = useMemo(() => {
+    if (insertPreview) {
+      // Build a temporary mission array with the preview mission inserted
+      const { afterIndex, missionType, param } = insertPreview
+      const tempMission = [...mission]
+      if (mission.length <= 2) {
+        // No missions yet
+        while (tempMission.length < 4) {
+          tempMission.push(null)
+        }
+        tempMission[2] = missionType
+        tempMission[3] = param
+        return computeRobotPreview(field, tempMission, 0)
+      }
+      const insertIndex = 2 + (afterIndex + 1) * 2
+      tempMission.splice(insertIndex, 0, missionType, param)
+      return computeRobotPreview(field, tempMission, afterIndex + 1)
+    }
+    return computeRobotPreview(field, mission, selectedMissionIndex)
+  }, [field, mission, selectedMissionIndex, insertPreview])
 
   // Auto-add an empty mission when a route panel is placed
   // Inserts after the start action (pair 0) + any previously auto-added routes
@@ -172,6 +190,7 @@ export function EditorPage({
             pushMissionHistory={pushMissionHistory}
             missionPanelHints={missionPanelHints}
             setMissionPanelHints={setMissionPanelHints}
+            onInsertPreview={setInsertPreview}
           />
         </div>
       </div>

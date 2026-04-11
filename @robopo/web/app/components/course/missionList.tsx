@@ -39,6 +39,12 @@ import {
 
 // ─── Types ───────────────────────────────────────────────────────────
 
+export type InsertPreview = {
+  afterIndex: number
+  missionType: MissionValue
+  param: number
+}
+
 type MissionPairItem = {
   id: string
   index: number
@@ -62,6 +68,7 @@ export function MissionList({
   pushMissionHistory,
   missionPanelHints,
   setMissionPanelHints,
+  onInsertPreview,
 }: {
   field: FieldState
   mission: MissionState
@@ -77,6 +84,7 @@ export function MissionList({
   pushMissionHistory: () => void
   missionPanelHints: (number | null)[]
   setMissionPanelHints: React.Dispatch<React.SetStateAction<(number | null)[]>>
+  onInsertPreview?: (preview: InsertPreview | null) => void
 }) {
   const [items, setItems] = useState<MissionPairItem[]>([])
   const [insertingAt, setInsertingAt] = useState<number | null>(null)
@@ -171,12 +179,14 @@ export function MissionList({
   function handleAddMission(afterIndex: number) {
     setInsertingAt(afterIndex)
     setSelectedMissionIndex(-1)
+    onInsertPreview?.(null)
   }
 
   function handleInsertMission(
     missionType: MissionValue,
     param: number,
     pointEntry: PointEntry,
+    panelHint: number | null,
   ) {
     if (insertingAt === null) {
       return
@@ -186,6 +196,7 @@ export function MissionList({
     const newMission = [...mission]
     const newPoint = [...point]
 
+    let newMissionIndex: number
     if (mission.length <= 2) {
       // No missions yet — set first pair
       while (newMission.length < 4) {
@@ -197,21 +208,24 @@ export function MissionList({
         newPoint.push(0)
       }
       newPoint[2] = pointEntry
+      newMissionIndex = 0
     } else {
       const insertIndex = 2 + (insertingAt + 1) * 2
       newMission.splice(insertIndex, 0, missionType, param)
       newPoint.splice(insertingAt + 3, 0, pointEntry)
+      newMissionIndex = insertingAt + 1
     }
 
     setMission(newMission)
     setPoint(newPoint)
     setInsertingAt(null)
-    setSelectedMissionIndex(null)
-    // Insert null hint at the new position (manually added missions have no hint)
+    setSelectedMissionIndex(newMissionIndex)
+    onInsertPreview?.(null)
+    // Insert panel hint at the new position
     if (insertingAt !== null) {
       setMissionPanelHints((prev) => {
         const newHints = [...prev]
-        newHints.splice(insertingAt + 1, 0, null)
+        newHints.splice(insertingAt + 1, 0, panelHint)
         return newHints
       })
     }
@@ -275,9 +289,22 @@ export function MissionList({
 
   return (
     <div className="w-full">
-      {/* Header with Undo/Redo */}
+      {/* Header with Total Points & Undo/Redo */}
       <div className="mb-3 flex items-center justify-between">
         <h3 className="font-bold text-sm">ミッション</h3>
+        <span className="badge badge-sm font-mono">
+          合計{" "}
+          {point.slice(1).reduce<number>((sum, entry) => {
+            if (entry === null) {
+              return sum
+            }
+            if (Array.isArray(entry)) {
+              return sum + Math.max(...entry)
+            }
+            return sum + entry
+          }, 0)}{" "}
+          pt
+        </span>
         <div className="flex gap-1">
           <button
             type="button"
@@ -317,8 +344,15 @@ export function MissionList({
         />
         {insertingAt === -1 && (
           <InsertMissionRow
+            defaultPanelId={panelPositions?.startPanel ?? null}
             onInsert={handleInsertMission}
-            onCancel={() => setInsertingAt(null)}
+            onCancel={() => {
+              setInsertingAt(null)
+              onInsertPreview?.(null)
+            }}
+            onPreviewChange={(mt, p) =>
+              onInsertPreview?.({ afterIndex: -1, missionType: mt, param: p })
+            }
           />
         )}
 
@@ -364,8 +398,19 @@ export function MissionList({
                 />
                 {insertingAt === idx && (
                   <InsertMissionRow
+                    defaultPanelId={panelPositions?.positions[idx] ?? null}
                     onInsert={handleInsertMission}
-                    onCancel={() => setInsertingAt(null)}
+                    onCancel={() => {
+                      setInsertingAt(null)
+                      onInsertPreview?.(null)
+                    }}
+                    onPreviewChange={(mt, p) =>
+                      onInsertPreview?.({
+                        afterIndex: idx,
+                        missionType: mt,
+                        param: p,
+                      })
+                    }
                   />
                 )}
               </div>
@@ -927,19 +972,25 @@ function InlineMissionEditor({
 // ─── Insert Mission Row ──────────────────────────────────────────────
 
 function InsertMissionRow({
+  defaultPanelId,
   onInsert,
   onCancel,
+  onPreviewChange,
 }: {
+  defaultPanelId: number | null
   onInsert: (
     missionType: MissionValue,
     param: number,
     pointEntry: PointEntry,
+    panelHint: number | null,
   ) => void
   onCancel: () => void
+  onPreviewChange?: (missionType: MissionValue, param: number) => void
 }) {
   const [missionType, setMissionType] = useState<MissionValue | null>(null)
   const [param, setParam] = useState<number | null>(null)
   const [pointEntry, setPointEntry] = useState<PointEntry>(0)
+  const [panelId, setPanelId] = useState<number | null>(defaultPanelId)
 
   const isMove = missionType === "mf" || missionType === "mb"
   const isTurn = missionType === "tr" || missionType === "tl"
@@ -948,20 +999,53 @@ function InsertMissionRow({
 
   function handleMissionTypeChange(val: MissionValue) {
     setMissionType(val)
+    let newParam: number | null
     if (val === "ps") {
-      setParam(0)
+      newParam = 0
     } else if (val === "mf" || val === "mb") {
-      setParam(1)
+      newParam = 1
     } else if (val === "tr" || val === "tl") {
-      setParam(90)
+      newParam = 90
     } else {
-      setParam(null)
+      newParam = null
+    }
+    setParam(newParam)
+    if (val && newParam !== null) {
+      onPreviewChange?.(val, newParam)
+    }
+  }
+
+  function handleParamChange(newParam: number) {
+    setParam(newParam)
+    if (missionType) {
+      onPreviewChange?.(missionType, newParam)
     }
   }
 
   return (
     <div className="rounded-lg border-2 border-primary/40 border-dashed bg-primary/5 p-3">
       <div className="flex flex-wrap items-center gap-2">
+        {/* Panel ID */}
+        <div className="flex items-center gap-0.5">
+          <span className="font-mono text-xs">P</span>
+          <input
+            type="number"
+            className="input input-bordered input-xs w-12 font-mono"
+            min={1}
+            max={25}
+            value={panelId ?? ""}
+            onChange={(e) => {
+              const num = Number(e.target.value)
+              if (e.target.value === "") {
+                setPanelId(null)
+              } else if (num >= 1 && num <= 25) {
+                setPanelId(num)
+              }
+            }}
+            placeholder="-"
+          />
+        </div>
+
         <select
           className="select select-bordered select-xs"
           value={(missionType as string) ?? ""}
@@ -982,7 +1066,7 @@ function InsertMissionRow({
             <select
               className="select select-bordered select-xs"
               value={param ?? ""}
-              onChange={(e) => setParam(Number(e.target.value))}
+              onChange={(e) => handleParamChange(Number(e.target.value))}
             >
               {[1, 2, 3, 4].map((n) => (
                 <option key={n} value={n}>
@@ -999,7 +1083,7 @@ function InsertMissionRow({
             <select
               className="select select-bordered select-xs"
               value={param ?? ""}
-              onChange={(e) => setParam(Number(e.target.value))}
+              onChange={(e) => handleParamChange(Number(e.target.value))}
             >
               {[90, 180, 270, 360].map((n) => (
                 <option key={n} value={n}>
@@ -1033,7 +1117,7 @@ function InsertMissionRow({
           disabled={!canInsert}
           onClick={() => {
             if (canInsert) {
-              onInsert(missionType, param ?? 0, pointEntry)
+              onInsert(missionType, param ?? 0, pointEntry, panelId)
             }
           }}
         >
