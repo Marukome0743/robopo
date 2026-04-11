@@ -2,6 +2,18 @@ import type { useRouter } from "next/navigation"
 import type React from "react"
 import type { PointState } from "@/app/components/course/utils"
 
+// courseOutRuleをパースする
+export function parseCourseOutRule(rule: string): {
+  type: "keep" | "zero" | "penalty"
+  penalty: number
+} {
+  if (rule.startsWith("penalty:")) {
+    const val = Number.parseInt(rule.split(":")[1], 10)
+    return { type: "penalty", penalty: Number.isNaN(val) ? 0 : val }
+  }
+  return { type: rule as "keep" | "zero", penalty: 0 }
+}
+
 // 進んだmissionの数によって獲得したポイントを計算する
 // pointState contains points in order: start, goal, mission...
 // First mission starts at index=2 with point pointState[2], point for index=i is pointState[i]
@@ -44,6 +56,7 @@ export async function resultSubmit(
   setLoading: React.Dispatch<React.SetStateAction<boolean>>,
   router: ReturnType<typeof useRouter>,
   setIsEnabled: (value: boolean) => void,
+  detail?: string | null,
 ) {
   setLoading(true)
   setIsEnabled(false)
@@ -55,6 +68,7 @@ export async function resultSubmit(
     courseId: courseId,
     playerId: playerId,
     judgeId: judgeId,
+    detail: detail ?? null,
   }
 
   try {

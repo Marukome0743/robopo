@@ -10,7 +10,11 @@ import {
   CourseOutModal,
   RetryModal,
 } from "@/app/challenge/challengeModal"
-import { calcPoint, resultSubmit } from "@/app/components/challenge/utils"
+import {
+  calcPoint,
+  parseCourseOutRule,
+  resultSubmit,
+} from "@/app/components/challenge/utils"
 import { Field } from "@/app/components/course/field"
 import {
   deserializeField,
@@ -37,6 +41,7 @@ type ChallengeProps = {
   field: string | null
   mission: string | null
   point: string | null
+  courseOutRule: string
   competitionId: number
   courseId: number
   playerId: number
@@ -212,6 +217,7 @@ export function Challenge({
   field,
   mission,
   point,
+  courseOutRule,
   competitionId,
   courseId,
   playerId,
@@ -495,35 +501,55 @@ export function Challenge({
           firstResultPoint={pointCount}
         />
       )}
-      {modalOpen === 3 && (
-        <CourseOutModal
-          setModalOpen={setModalOpen}
-          setFirstResult={setFirstResult}
-          handleSubmit={() =>
-            resultSubmit(
-              isRetry ? firstResult : 0,
-              isRetry ? 0 : retryResult,
-              competitionId,
-              courseId,
-              playerId,
-              judgeId,
-              setMessage,
-              setIsSuccess,
-              setLoading,
-              router,
-              setIsEnabled,
-            )
+      {modalOpen === 3 &&
+        (() => {
+          const parsed = parseCourseOutRule(courseOutRule)
+          const courseOutDetail = isRetry
+            ? "courseOut:retry"
+            : "courseOut:first"
+          // Determine firstResult/retryResult for submission based on courseOutRule
+          let submitFirst: number
+          let submitRetry: number | null
+          if (parsed.type === "zero") {
+            submitFirst = isRetry ? firstResult : 0
+            submitRetry = isRetry ? 0 : retryResult
+          } else {
+            // "keep" and "penalty": keep actual mission counts
+            submitFirst = firstResult
+            submitRetry = retryResult
           }
-          handleRetry={handleRetry}
-          loading={loading}
-          isSuccess={isSuccess}
-          message={message}
-          firstResultPoint={
-            isRetry ? calcPoint(pointState, firstResult) : pointCount
-          }
-          retryResultPoint={isRetry ? pointCount : null}
-        />
-      )}
+          return (
+            <CourseOutModal
+              setModalOpen={setModalOpen}
+              setFirstResult={setFirstResult}
+              handleSubmit={() =>
+                resultSubmit(
+                  submitFirst,
+                  submitRetry,
+                  competitionId,
+                  courseId,
+                  playerId,
+                  judgeId,
+                  setMessage,
+                  setIsSuccess,
+                  setLoading,
+                  router,
+                  setIsEnabled,
+                  courseOutDetail,
+                )
+              }
+              handleRetry={handleRetry}
+              loading={loading}
+              isSuccess={isSuccess}
+              message={message}
+              firstResultPoint={
+                isRetry ? calcPoint(pointState, firstResult) : pointCount
+              }
+              retryResultPoint={isRetry ? pointCount : null}
+              courseOutRule={courseOutRule}
+            />
+          )
+        })()}
     </>
   )
 }
