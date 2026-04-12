@@ -1,6 +1,36 @@
 import { calcPoint } from "@/app/components/challenge/utils"
 import type { PointState } from "@/app/components/course/utils"
 
+export type JudgeSummary = {
+  judgeId: number
+  judgeName: string
+  scoredPlayerCount: number
+  scoredPlayerNames: string[]
+  firstScoringTime: string | null
+  lastScoringTime: string | null
+  totalScoringCount: number
+  courseCount: number
+  courseNames: string[]
+  averageScore: number | null
+  courseOutCount: number
+}
+
+export type CourseCompetitionSummary = {
+  courseId: number
+  courseName: string
+  firstChallengeTime: string | null
+  firstCompletionTime: string | null
+  lastChallengeTime: string | null
+  challengerCount: number
+  completionCount: number
+  completionRate: number | null
+  totalChallengeCount: number
+  averageScore: number | null
+  maxScore: number | null
+  courseOutCount: number
+  retryCount: number
+}
+
 export type CourseSummary = {
   playerId: number | null
   playerName: string | null
