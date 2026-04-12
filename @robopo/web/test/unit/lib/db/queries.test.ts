@@ -38,6 +38,28 @@ async function setupTestData() {
     await db.delete(course).where(eq(course.id, existing[0].id))
   }
 
+  // Clean up leftover test players
+  for (const pName of ["__test_player_A__", "__test_player_B__"]) {
+    const existingPlayer = await db
+      .select({ id: player.id })
+      .from(player)
+      .where(eq(player.name, pName))
+      .limit(1)
+    if (existingPlayer.length > 0) {
+      await db.delete(player).where(eq(player.id, existingPlayer[0].id))
+    }
+  }
+
+  // Clean up leftover test competition
+  const existingComp = await db
+    .select({ id: competition.id })
+    .from(competition)
+    .where(eq(competition.name, "__test_query_competition__"))
+    .limit(1)
+  if (existingComp.length > 0) {
+    await db.delete(competition).where(eq(competition.id, existingComp[0].id))
+  }
+
   // Create test course
   const [c] = await db
     .insert(course)
