@@ -1,3 +1,4 @@
+import { PauseIcon } from "@heroicons/react/24/solid"
 import {
   getNextPosition,
   type MissionValue,
@@ -46,6 +47,9 @@ export function NextArrow({
         responsive={responsive}
       />
     )
+  }
+  if (nextMission[0] === "ps") {
+    return <NextPauseIndicator row={row} col={col} responsive={responsive} />
   }
   return (
     <NextTurnArrow
@@ -296,6 +300,48 @@ function getStartDeg(direction: MissionValue): number {
     default:
       return 0
   }
+}
+
+function NextPauseIndicator({
+  row,
+  col,
+  responsive,
+}: {
+  row: number
+  col: number
+  responsive?: boolean
+}) {
+  const style: React.CSSProperties = responsive
+    ? {
+        position: "absolute",
+        top: `calc(var(--cell-size) * ${row})`,
+        left: `calc(var(--cell-size) * ${col})`,
+        height: "var(--cell-size)",
+        width: "var(--cell-size)",
+        pointerEvents: "none",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }
+    : {
+        position: "absolute",
+        top: `${row * PANEL_SIZE}px`,
+        left: `${col * PANEL_SIZE}px`,
+        height: `${PANEL_SIZE}px`,
+        width: `${PANEL_SIZE}px`,
+        pointerEvents: "none",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }
+
+  return (
+    <div style={style}>
+      <div className="pause-indicator flex h-3/4 w-3/4 items-center justify-center rounded-full bg-warning/25 ring-2 ring-warning/40">
+        <PauseIcon className="h-1/2 w-1/2 text-warning drop-shadow-sm" />
+      </div>
+    </div>
+  )
 }
 
 function getClipPath(degree: MissionValue): string {
