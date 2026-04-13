@@ -1,8 +1,29 @@
 import { afterEach, describe, expect, test } from "bun:test"
 import { cleanup, render, screen } from "@testing-library/react"
+import {
+  AppRouterContext,
+  type AppRouterInstance,
+} from "next/dist/shared/lib/app-router-context.shared-runtime"
 import { Dashboard } from "@/app/components/home/dashboard"
 
 afterEach(cleanup)
+
+const mockRouter: AppRouterInstance = {
+  push: () => {},
+  replace: () => {},
+  refresh: () => {},
+  back: () => {},
+  forward: () => {},
+  prefetch: () => Promise.resolve(),
+}
+
+function renderWithRouter(ui: React.ReactElement) {
+  return render(
+    <AppRouterContext.Provider value={mockRouter}>
+      {ui}
+    </AppRouterContext.Provider>,
+  )
+}
 
 const defaultProps = {
   competitionList: {
@@ -49,19 +70,19 @@ const defaultProps = {
 
 describe("Dashboard", () => {
   test("renders two dashboard cards", () => {
-    const { container } = render(<Dashboard {...defaultProps} />)
+    const { container } = renderWithRouter(<Dashboard {...defaultProps} />)
     const cards = container.querySelectorAll(".rounded-box")
     expect(cards.length).toBe(2)
   })
 
   test("renders scoring card with primary variant", () => {
-    const { container } = render(<Dashboard {...defaultProps} />)
+    const { container } = renderWithRouter(<Dashboard {...defaultProps} />)
     const primaryCard = container.querySelector(".ring-primary\\/10")
     expect(primaryCard).toBeTruthy()
   })
 
   test("renders card titles", () => {
-    render(<Dashboard {...defaultProps} />)
+    renderWithRouter(<Dashboard {...defaultProps} />)
     expect(screen.getByText("採点")).toBeTruthy()
     expect(screen.getByText("大会管理")).toBeTruthy()
   })
