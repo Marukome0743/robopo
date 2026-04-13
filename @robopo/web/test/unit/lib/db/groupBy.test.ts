@@ -65,9 +65,36 @@ describe("groupByPlayer", () => {
 describe("groupByJudge", () => {
   test("groups flat rows by judge id and collects competition names", () => {
     const result = groupByJudge([
-      { id: 1, name: "U1", competitionId: 10, competitionName: "Comp1" },
-      { id: 1, name: "U1", competitionId: 20, competitionName: "Comp2" },
-      { id: 2, name: "U2", competitionId: 10, competitionName: "Comp1" },
+      {
+        id: 1,
+        username: "U1",
+        userId: "u1",
+        note: null,
+        lastLoginAt: null,
+        createdAt: null,
+        competitionId: 10,
+        competitionName: "Comp1",
+      },
+      {
+        id: 1,
+        username: "U1",
+        userId: "u1",
+        note: null,
+        lastLoginAt: null,
+        createdAt: null,
+        competitionId: 20,
+        competitionName: "Comp2",
+      },
+      {
+        id: 2,
+        username: "U2",
+        userId: "u2",
+        note: null,
+        lastLoginAt: null,
+        createdAt: null,
+        competitionId: 10,
+        competitionName: "Comp1",
+      },
     ])
 
     expect(result).toHaveLength(2)
@@ -77,7 +104,16 @@ describe("groupByJudge", () => {
 
   test("handles judge with no competition", () => {
     const result = groupByJudge([
-      { id: 1, name: "U1", competitionId: null, competitionName: null },
+      {
+        id: 1,
+        username: "U1",
+        userId: "u1",
+        note: null,
+        lastLoginAt: null,
+        createdAt: null,
+        competitionId: null,
+        competitionName: null,
+      },
     ])
 
     expect(result).toHaveLength(1)

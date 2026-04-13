@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm"
 import { db } from "@/app/lib/db/db"
+import { auth } from "@/lib/auth"
 
 async function seed() {
   await db.execute(sql`BEGIN`)
@@ -51,29 +52,54 @@ async function seed() {
       SELECT setval('course_id_seq', (SELECT COALESCE(MAX(id), 0) FROM course))
     `)
 
-    // Test judges
+    // Clean up existing test judges and their user accounts
+    // First nullify judge references in challenges
     await db.execute(sql`
-      INSERT INTO judge (id, name)
-      VALUES (1, 'TestJudge')
-      ON CONFLICT (id) DO UPDATE SET name = 'TestJudge'
+      UPDATE challenge SET judge_id = NULL WHERE judge_id IN (SELECT id FROM judge)
     `)
+    await db.execute(
+      sql`DELETE FROM competition_judge WHERE judge_id IN (SELECT id FROM judge)`,
+    )
+    const existingJudgeUsers = await db.execute<{ user_id: string }>(sql`
+      SELECT user_id FROM judge WHERE user_id IS NOT NULL
+    `)
+    await db.execute(sql`DELETE FROM judge`)
+    // Delete linked user accounts
+    for (const row of existingJudgeUsers.rows) {
+      await db.execute(sql`DELETE FROM "user" WHERE id = ${row.user_id}`)
+    }
     await db.execute(sql`
-      UPDATE challenge SET judge_id = NULL WHERE judge_id IN (
-        SELECT id FROM judge WHERE name IN ('審判B', '審判C')
-      )
+      SELECT setval('judge_id_seq', GREATEST((SELECT COALESCE(MAX(id), 0) FROM judge), 1))
     `)
-    await db.execute(sql`
-      DELETE FROM competition_judge WHERE judge_id IN (
-        SELECT id FROM judge WHERE name IN ('審判B', '審判C')
-      )
-    `)
-    await db.execute(sql`DELETE FROM judge WHERE name IN ('審判B', '審判C')`)
-    await db.execute(sql`
-      SELECT setval('judge_id_seq', (SELECT COALESCE(MAX(id), 0) FROM judge))
-    `)
-    await db.execute(sql`
-      INSERT INTO judge (name) VALUES ('審判B'), ('審判C')
-    `)
+
+    // Also clean up any leftover judge user accounts by username
+    const judgeUsernames = ["testjudge", "judgeb", "judgec"]
+    for (const uname of judgeUsernames) {
+      await db.execute(sql`DELETE FROM "user" WHERE username = ${uname}`)
+    }
+
+    // Create judge accounts (user + judge record)
+    for (const uname of judgeUsernames) {
+      try {
+        const signUpRes = await auth.api.signUpEmail({
+          body: {
+            email: `${uname.toLowerCase()}@robopo.local`,
+            password: "judge1234",
+            name: uname,
+            username: uname,
+          },
+        })
+
+        if (signUpRes?.user?.id) {
+          await db.execute(sql`
+            INSERT INTO judge (user_id) VALUES (${signUpRes.user.id})
+          `)
+          console.log(`  Judge account created: ${uname}`)
+        }
+      } catch (e) {
+        console.error(`  Failed to create account for ${uname}:`, e)
+      }
+    }
 
     // Delete existing data to prevent test data duplication
     await db.execute(sql`
