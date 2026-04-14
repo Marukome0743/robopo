@@ -1,6 +1,6 @@
 import { useRouter } from "next/navigation"
 import type React from "react"
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useState } from "react"
 import {
   SoundController,
   useAudioContext,
@@ -299,20 +299,32 @@ export function Challenge({
   })
   const [botDirection, setBotDirection] = useState(missionState[0])
   const [strictMode, _setStrictMode] = useState(false)
-  const nextAudioRef = useRef<HTMLAudioElement | null>(null)
-  const nextSound = nextAudioRef.current
-  const backAudioRef = useRef<HTMLAudioElement | null>(null)
-  const backSound = backAudioRef.current
-  const goalAudioRef = useRef<HTMLAudioElement | null>(null)
-  const goalSound = goalAudioRef.current
   const { muted } = useAudioContext()
 
-  useEffect(() => {
-    if (nextSound && backSound) {
-      nextSound.volume = 0.4
-      backSound.volume = 0.2
-    }
-  }, [nextSound, backSound])
+  const playSound = useCallback(
+    (src: string, volume: number) => {
+      if (muted) {
+        return
+      }
+      const audio = new Audio(src)
+      audio.volume = volume
+      audio.play().catch(() => {})
+    },
+    [muted],
+  )
+
+  const playNext = useCallback(
+    () => playSound("/sound/02_next.mp3", 0.4),
+    [playSound],
+  )
+  const playBack = useCallback(
+    () => playSound("/sound/03_back.mp3", 0.2),
+    [playSound],
+  )
+  const playGoal = useCallback(
+    () => playSound("/sound/04_goal.mp3", 1.0),
+    [playSound],
+  )
 
   const handleNext = (row: number, col: number) => {
     if (
@@ -331,10 +343,10 @@ export function Challenge({
         if (nowMission === missionPair.length - 1) {
           setIsGoal(true)
           setModalOpen(1)
-          !muted && goalSound?.play()
+          playGoal()
         } else if (nowMission < missionPair.length - 1) {
           setNowMission(nowMission + 1)
-          !muted && nextSound?.play()
+          playNext()
         }
         if (!isRetry && !isGoal) {
           setFirstResult(firstResult + 1)
@@ -371,7 +383,7 @@ export function Challenge({
       if (isGoal) {
         setIsGoal(false)
       }
-      !muted && backSound?.play()
+      playBack()
     }
   }
 
@@ -404,11 +416,11 @@ export function Challenge({
       setPointCount(newPoint + goalPt)
       setIsGoal(true)
       setModalOpen(1)
-      !muted && goalSound?.play()
+      playGoal()
     } else {
       setPointCount(newPoint)
       setNowMission(nowMission + 1)
-      !muted && nextSound?.play()
+      playNext()
     }
 
     // Update robot position
@@ -465,9 +477,6 @@ export function Challenge({
 
   return (
     <>
-      <audio src="/sound/02_next.mp3" ref={nextAudioRef} muted={muted} />
-      <audio src="/sound/03_back.mp3" ref={backAudioRef} muted={muted} />
-      <audio src="/sound/04_goal.mp3" ref={goalAudioRef} muted={muted} />
       <NormalChallengeSection
         isGoal={isGoal}
         pointState={pointState}
