@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test"
-import { cleanup, fireEvent, screen } from "@testing-library/react"
+import { cleanup, screen } from "@testing-library/react"
 import { ChallengeTab, ManageTab } from "@/app/components/home/tabs"
 import { renderWithRouter } from "../../../utils/router"
 
@@ -128,7 +128,7 @@ describe("ChallengeTab", () => {
     expect(screen.getByText("judgeb")).toBeTruthy()
   })
 
-  test("shows warning when course card clicked without judge selected", () => {
+  test("shows course cards when single competition is active", () => {
     const singleCompe = {
       competitions: [
         {
@@ -142,7 +142,7 @@ describe("ChallengeTab", () => {
         },
       ],
     }
-    const { container } = renderWithRouter(
+    renderWithRouter(
       <ChallengeTab
         competitionList={singleCompe}
         courseList={courseList}
@@ -151,14 +151,8 @@ describe("ChallengeTab", () => {
         competitionJudgeList={competitionJudgeList}
       />,
     )
-    expect(container.querySelector(".alert-warning")).toBeNull()
     const courseButton = screen.getByText("Course A").closest("button")
     expect(courseButton).toBeTruthy()
-    if (courseButton) {
-      fireEvent.click(courseButton)
-    }
-    expect(container.querySelector(".alert-warning")).toBeTruthy()
-    expect(screen.getByText("先に採点者を選択してください")).toBeTruthy()
   })
 
   test("renders course cards when competition is selected", () => {
@@ -220,12 +214,11 @@ describe("ChallengeTab", () => {
         competitionJudgeList={competitionJudgeList}
       />,
     )
-    expect(
-      screen.getByText("大会を選択するとコースと選手が表示されます"),
-    ).toBeTruthy()
+    const placeholders = screen.getAllByText("大会を選択してください")
+    expect(placeholders.length).toBeGreaterThan(0)
   })
 
-  test("renders course cards as buttons when judge is selected", () => {
+  test("renders judge cards as buttons for selection", () => {
     const singleCompe = {
       competitions: [
         {
@@ -249,16 +242,13 @@ describe("ChallengeTab", () => {
       />,
     )
 
-    // Select judge
-    const judgeSelect = screen.getByRole("combobox", {
-      name: "採点者を選択",
-    })
-    fireEvent.change(judgeSelect, { target: { value: "1" } })
+    // Judge cards should render as buttons
+    const judgeButton = screen.getByText("judgea").closest("button")
+    expect(judgeButton).toBeTruthy()
 
-    // Course card should now render as a button (not a link)
+    // Course cards should also be buttons
     const courseButton = screen.getByText("Course A").closest("button")
     expect(courseButton).toBeTruthy()
-    expect(courseButton?.disabled).toBe(false)
   })
 })
 
