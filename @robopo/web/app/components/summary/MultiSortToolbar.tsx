@@ -1,12 +1,6 @@
 "use client"
 
-import {
-  BarsArrowDownIcon,
-  BarsArrowUpIcon,
-  MagnifyingGlassIcon,
-  PlusIcon,
-  XMarkIcon,
-} from "@heroicons/react/24/outline"
+import { ArrowDownAZ, ArrowUpAZ, Plus, Search, X } from "lucide-react"
 import type {
   SortCondition,
   SortOrder,
@@ -47,7 +41,7 @@ export function MultiSortToolbar<K extends string>({
   return (
     <div className="flex shrink-0 flex-col gap-3 px-4 pb-4">
       <label className="input input-bordered flex items-center gap-2 rounded-xl bg-base-200/40 transition-colors focus-within:bg-base-100">
-        <MagnifyingGlassIcon className="size-4 shrink-0 text-base-content/40" />
+        <Search className="size-4 shrink-0 text-base-content/40" />
         <input
           type="text"
           placeholder={searchPlaceholder}
@@ -74,9 +68,9 @@ export function MultiSortToolbar<K extends string>({
               onClick={() => onToggleOrder(index)}
             >
               {sc.order === "desc" ? (
-                <BarsArrowDownIcon className="size-3" />
+                <ArrowDownAZ className="size-3" />
               ) : (
-                <BarsArrowUpIcon className="size-3" />
+                <ArrowUpAZ className="size-3" />
               )}
               {getOrderLabel(sc.key, sc.order)}
             </button>
@@ -86,14 +80,14 @@ export function MultiSortToolbar<K extends string>({
               onClick={() => onRemoveSort(index)}
               aria-label={`${getSortLabel(sc.key)}のソートを削除`}
             >
-              <XMarkIcon className="size-3.5" />
+              <X className="size-3.5" />
             </button>
           </div>
         ))}
 
         {availableKeys.length > 0 && (
           <div className="flex items-center gap-1 rounded-lg bg-base-200/50 px-1.5 py-1">
-            <PlusIcon className="size-3.5 shrink-0 text-base-content/40" />
+            <Plus className="size-3.5 shrink-0 text-base-content/40" />
             <select
               className="select select-ghost select-xs bg-transparent font-medium text-base-content/60 focus:outline-none [&>option]:bg-base-100 [&>option]:text-base-content"
               value=""

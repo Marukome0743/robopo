@@ -1,6 +1,6 @@
 "use client"
 
-import { XMarkIcon } from "@heroicons/react/24/outline"
+import { X } from "lucide-react"
 import { useEffect, useState } from "react"
 import { DataTableShell } from "@/app/components/summary/DataTableShell"
 import { MultiSortToolbar } from "@/app/components/summary/MultiSortToolbar"
@@ -220,7 +220,7 @@ export function JudgeSummaryTable({ competitionId }: Props) {
                 className="btn btn-ghost btn-sm btn-circle"
                 onClick={() => setPlayerDetailNames(null)}
               >
-                <XMarkIcon className="size-5" />
+                <X className="size-5" />
               </button>
             </div>
             <div className="max-h-[60vh] overflow-y-auto">

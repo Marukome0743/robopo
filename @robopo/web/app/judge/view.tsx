@@ -1,14 +1,14 @@
 "use client"
 
 import {
-  BarsArrowDownIcon,
-  BarsArrowUpIcon,
-  FunnelIcon,
-  MagnifyingGlassIcon,
-  PencilSquareIcon,
-  PlusIcon,
-  TrashIcon,
-} from "@heroicons/react/24/outline"
+  ArrowDownAZ,
+  ArrowUpAZ,
+  Filter,
+  Plus,
+  Search,
+  SquarePen,
+  Trash2,
+} from "lucide-react"
 import { useState } from "react"
 import { CommonCheckboxList } from "@/app/components/common/commonList"
 import { JudgeDeleteModal, JudgeFormModal } from "@/app/judge/modals"
@@ -117,7 +117,7 @@ export function JudgeView({
               setCreateModalOpen(true)
             }}
           >
-            <PlusIcon className="size-4" />
+            <Plus className="size-4" />
             新規作成
           </button>
           <button
@@ -133,7 +133,7 @@ export function JudgeView({
               setEditModalOpen(true)
             }}
           >
-            <PencilSquareIcon className="size-4" />
+            <SquarePen className="size-4" />
             編集
           </button>
           <button
@@ -149,7 +149,7 @@ export function JudgeView({
               setDeleteModalOpen(true)
             }}
           >
-            <TrashIcon className="size-4" />
+            <Trash2 className="size-4" />
             削除
           </button>
         </div>
@@ -158,7 +158,7 @@ export function JudgeView({
       {/* Filter bar */}
       <div className="flex shrink-0 flex-col gap-3 px-4 pb-4">
         <label className="input input-bordered flex items-center gap-2 rounded-xl bg-base-200/40 transition-colors focus-within:bg-base-100">
-          <MagnifyingGlassIcon className="size-4 shrink-0 text-base-content/40" />
+          <Search className="size-4 shrink-0 text-base-content/40" />
           <input
             type="text"
             placeholder="ユーザー名・備考で検索"
@@ -169,7 +169,7 @@ export function JudgeView({
         </label>
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex shrink-0 items-center gap-1.5 rounded-lg bg-base-200/50 px-2.5 py-1.5">
-            <FunnelIcon className="size-3.5 shrink-0 text-base-content/40" />
+            <Filter className="size-3.5 shrink-0 text-base-content/40" />
             <span className="shrink-0 text-xs">大会</span>
             <select
               className="select select-ghost select-xs bg-transparent pe-0 font-medium focus:outline-none [&>option]:bg-base-100 [&>option]:text-base-content"
@@ -202,9 +202,9 @@ export function JudgeView({
               }
             >
               {sortOrder === "desc" ? (
-                <BarsArrowDownIcon className="size-3.5" />
+                <ArrowDownAZ className="size-3.5" />
               ) : (
-                <BarsArrowUpIcon className="size-3.5" />
+                <ArrowUpAZ className="size-3.5" />
               )}
               {sortKey === "username"
                 ? sortOrder === "desc"
