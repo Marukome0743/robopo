@@ -1,4 +1,6 @@
 import { createChallenge } from "@/lib/db/queries/insert"
+import { deleteChallengeById } from "@/lib/db/queries/queries"
+import { updateChallenge } from "@/lib/db/queries/update"
 
 export async function POST(req: Request) {
   const {
@@ -27,6 +29,52 @@ export async function POST(req: Request) {
       {
         success: false,
         message: "An error occurred while creating the challenge.",
+        error: error,
+      },
+      { status: 500 },
+    )
+  }
+}
+
+export async function PATCH(req: Request) {
+  const { id, firstResult, retryResult, detail } = await req.json()
+  if (!id) {
+    return Response.json(
+      { success: false, message: "Challenge ID is required." },
+      { status: 400 },
+    )
+  }
+  try {
+    await updateChallenge(id, { firstResult, retryResult, detail })
+    return Response.json({ success: true }, { status: 200 })
+  } catch (error) {
+    return Response.json(
+      {
+        success: false,
+        message: "An error occurred while updating the challenge.",
+        error: error,
+      },
+      { status: 500 },
+    )
+  }
+}
+
+export async function DELETE(req: Request) {
+  const { id } = await req.json()
+  if (!id) {
+    return Response.json(
+      { success: false, message: "Challenge ID is required." },
+      { status: 400 },
+    )
+  }
+  try {
+    await deleteChallengeById(id)
+    return Response.json({ success: true }, { status: 200 })
+  } catch (error) {
+    return Response.json(
+      {
+        success: false,
+        message: "An error occurred while deleting the challenge.",
         error: error,
       },
       { status: 500 },

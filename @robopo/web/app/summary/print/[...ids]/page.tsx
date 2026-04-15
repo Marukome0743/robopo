@@ -1,4 +1,4 @@
-import { PlayerScoreSheet } from "@/components/summary/playerScoreSheet"
+import { PrintScoreSheet } from "@/components/summary/printScoreSheet"
 import { deserializeMission, missionStatePair } from "@/lib/course/mission"
 import { deserializePoint } from "@/lib/course/point"
 import {
@@ -13,14 +13,13 @@ import {
 import { maxCoursePoint } from "@/lib/summary/calculations"
 import { getCompetitionCourseList } from "@/server/db"
 
-export default async function SummaryPlayer({
+export default async function PrintSummaryPlayer({
   params,
 }: {
   params: Promise<{ ids: number[] }>
 }) {
   const { ids } = await params
   const competitionId = ids[0]
-  const selectedCourseId = ids[1]
   const playerId = ids[2]
 
   const [player, competitionData] = await Promise.all([
@@ -34,7 +33,6 @@ export default async function SummaryPlayer({
 
   const { competitionCourses } = await getCompetitionCourseList(competitionId)
 
-  // Build full course data for all courses
   const courses = await Promise.all(
     competitionCourses.map(async (c) => {
       const course = await getCourseById(c.id)
@@ -75,7 +73,6 @@ export default async function SummaryPlayer({
     }),
   )
 
-  // Calculate totals
   const totalPoint = courses.reduce((sum, c) => sum + c.maxPt, 0)
   const totalChallengeCount = courses.reduce(
     (sum, c) => sum + c.challengeCount,
@@ -83,16 +80,13 @@ export default async function SummaryPlayer({
   )
 
   return (
-    <PlayerScoreSheet
+    <PrintScoreSheet
       player={{
         name: player.name,
         furigana: player.furigana,
         bibNumber: player.bibNumber,
       }}
-      competitionId={competitionId}
       competitionName={competitionName}
-      selectedCourseId={selectedCourseId}
-      playerId={playerId}
       courses={courses}
       totalPoint={totalPoint}
       totalChallengeCount={totalChallengeCount}
