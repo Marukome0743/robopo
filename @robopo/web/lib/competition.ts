@@ -1,10 +1,11 @@
 export type CompetitionStatus = "before" | "active" | "ended" | "unknown"
 
 /**
- * Determine the current status of a competition based on its date range.
- * - "before": today is before the start date
- * - "active": today is within [startDate, endDate]
- * - "ended": today is after the end date
+ * Determine the current status of a competition based on its datetime range.
+ * Compares at minute precision (includes hours and minutes).
+ * - "before": now is before the start datetime
+ * - "active": now is within [startDate, endDate]
+ * - "ended": now is after the end datetime
  * - "unknown": start or end date is not set
  */
 export function getCompetitionStatus(c: {
@@ -14,23 +15,20 @@ export function getCompetitionStatus(c: {
   if (!c.startDate || !c.endDate) {
     return "unknown"
   }
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  const now = new Date()
   const start = new Date(c.startDate)
-  start.setHours(0, 0, 0, 0)
   const end = new Date(c.endDate)
-  end.setHours(0, 0, 0, 0)
-  if (today < start) {
+  if (now < start) {
     return "before"
   }
-  if (today > end) {
+  if (now > end) {
     return "ended"
   }
   return "active"
 }
 
 /**
- * Check if a competition is currently active (today falls within its date range).
+ * Check if a competition is currently active.
  */
 export function isCompetitionActive(c: {
   startDate: Date | null
