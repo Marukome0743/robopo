@@ -1,7 +1,7 @@
 [tools]
 bun = "latest"
 ffmpeg = "latest"
-markdownlint-cli2 = "latest"
+rumdl = "latest"
 pitchfork = "latest"
 
 [tasks.lint]
@@ -9,7 +9,7 @@ run = ["bun lint:fix --unsafe", "mise lint:md"]
 
 [tasks."lint:md"]
 description = "Check markdown files for linting issues"
-run = "markdownlint-cli2 '**/*.md'"
+run = "rumdl check --fix ."
 
 [tasks.setup-env]
 description = "Setup environment variables for @robopo/web"
