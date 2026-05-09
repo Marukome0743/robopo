@@ -1,0 +1,13 @@
+[global]
+respect-gitignore = true
+exclude = [
+  "@robopo/docs/**",
+  "@robopo/web/README.md",
+  ".github/pull_request_template.md",
+  "CODE_OF_CONDUCT.md",
+  "CONTRIBUTING.md",
+  "README.md",
+]
+
+[MD013]
+line-length = 120
