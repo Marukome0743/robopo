@@ -98,7 +98,7 @@ export function LiveSpectator({
   const [competitionId, setCompetitionId] = useState<number | null>(
     defaultCompetitionId,
   )
-  const [now, setNow] = useState(() => Date.now())
+  const [now, setNow] = useState<number | null>(null)
   const [recentEvents, setRecentEvents] = useState<
     { id: string; text: string }[]
   >([])
@@ -147,8 +147,10 @@ export function LiveSpectator({
     window.history.replaceState(null, "", url.toString())
   }, [theme, hydrated])
 
-  // Tick clock for remaining time.
+  // Defer reading Date.now() to after hydration: the SSR clock string would
+  // otherwise mismatch the client's first paint when the second ticks over.
   useEffect(() => {
+    setNow(Date.now())
     const id = setInterval(() => setNow(Date.now()), 1000)
     return () => clearInterval(id)
   }, [])
@@ -182,7 +184,7 @@ export function LiveSpectator({
   const compact = useIsCompact()
 
   const remainingMs = useMemo(() => {
-    if (!snapshot?.competition.endDate) {
+    if (!snapshot?.competition.endDate || now === null) {
       return null
     }
     return new Date(snapshot.competition.endDate).getTime() - now
